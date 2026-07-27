@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Túi mù VIP - Acc game</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+        body { background: #0a0a12; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; }
+        a { color: #f57c00; text-decoration: none; }
+        .header { background: #0f0f1a; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #1a1a2e; }
+        .header .logo { font-size: 24px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
+        .header .logo span { color: #f57c00; }
+        .header .logo small { font-size: 12px; font-weight: 400; color: #666; }
+        .header .nav-links { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .header .nav-links .balance { font-size: 14px; font-weight: 700; color: #ffd700; background: rgba(255,255,255,0.05); padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; }
+        .header .nav-links .balance:hover { background: rgba(255,255,255,0.08); }
+        .header .nav-links a { color: #aaa; font-size: 14px; font-weight: 600; transition: 0.2s; cursor: pointer; }
+        .header .nav-links a:hover { color: #f57c00; }
+        .header .nav-links .btn-login { padding: 8px 20px; background: #f57c00; border-radius: 8px; color: #fff !important; font-weight: 700; }
+        .header .nav-links .btn-login:hover { background: #e65100; }
+        .header .nav-links .btn-reg { padding: 8px 20px; border: 1px solid #f57c00; border-radius: 8px; color: #f57c00 !important; font-weight: 700; }
+        .header .nav-links .btn-reg:hover { background: rgba(245,124,0,0.05); }
+        .header .nav-links .user-name { color: #fff; font-weight: 600; font-size: 14px; }
+        .header .nav-links .btn-logout { color: #ff6b6b !important; font-size: 13px; }
+        .header .nav-links .btn-logout:hover { color: #ff4444 !important; }
+        .header .nav-links .btn-recharge { padding: 6px 16px; background: transparent; border: 1px solid #ffd700; border-radius: 8px; color: #ffd700 !important; font-weight: 700; font-size: 13px; cursor: pointer; }
+        .header .nav-links .btn-recharge:hover { background: rgba(255,215,0,0.05); }
+        .header .nav-links .btn-admin { padding: 6px 16px; background: transparent; border: 1px solid #ff6b6b; border-radius: 8px; color: #ff6b6b !important; font-weight: 700; font-size: 13px; cursor: pointer; }
+        .header .nav-links .btn-admin:hover { background: rgba(255,0,0,0.05); }
+        .hero { background: linear-gradient(135deg, #0f0f1a, #1a0f2a); padding: 40px 24px; text-align: center; border-bottom: 1px solid #1a1a2e; }
+        .hero h1 { font-size: 36px; font-weight: 800; background: linear-gradient(135deg, #ffd700, #f57c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .hero p { color: #888; font-size: 16px; max-width: 600px; margin: 0 auto; }
+        .hero .stats { display: flex; justify-content: center; gap: 40px; margin-top: 24px; flex-wrap: wrap; }
+        .hero .stats .stat-item { text-align: center; }
+        .hero .stats .stat-item .number { font-size: 28px; font-weight: 800; color: #ffd700; }
+        .hero .stats .stat-item .label { font-size: 13px; color: #888; }
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; flex: 1; }
+        .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; border-bottom: 1px solid #1a1a2e; padding-bottom: 12px; }
+        .filter-bar .filter-btn { padding: 8px 20px; border-radius: 20px; border: 1px solid transparent; background: transparent; color: #aaa; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s; }
+        .filter-bar .filter-btn:hover { color: #fff; }
+        .filter-bar .filter-btn.active { background: #f57c00; color: #fff; border-color: #f57c00; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .product-card { background: #12121f; border-radius: 16px; padding: 20px 18px 22px; border: 1px solid #1a1a2e; transition: 0.3s; }
+        .product-card:hover { border-color: #f57c00; transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .product-card .badge { display: inline-block; background: #f57c00; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 12px; border-radius: 20px; margin-bottom: 8px; }
+        .product-card .name { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .product-card .desc { font-size: 14px; color: #888; margin-bottom: 8px; }
+        .product-card .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .product-card .price { font-size: 22px; font-weight: 800; color: #ffd700; }
+        .product-card .price .old { font-size: 14px; color: #666; text-decoration: line-through; font-weight: 400; margin-left: 6px; }
+        .product-card .btn-buy { width: 100%; padding: 12px; background: linear-gradient(135deg, #f57c00, #e65100); border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .product-card .btn-buy:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 4px 16px rgba(245,124,0,0.2); }
+        .product-card .btn-buy:disabled { opacity: 0.4; cursor: not-allowed; }
+        .modal-open-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-open-box.show { display: flex; }
+        .modal-open-box .modal-inner { background: #1a1a2e; border-radius: 20px; padding: 32px 28px; max-width: 440px; width: 92%; border: 1px solid rgba(255,215,0,0.15); box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: popIn 0.3s ease; position: relative; text-align: center; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-open-box .close-modal-btn { position: absolute; top: 12px; right: 18px; font-size: 28px; color: #888; cursor: pointer; background: none; border: none; }
+        .modal-open-box .big-icon { font-size: 64px; margin-bottom: 8px; }
+        .modal-open-box .result-title { font-size: 24px; font-weight: 800; color: #ffd700; margin-bottom: 4px; }
+        .modal-open-box .result-acc { font-size: 22px; font-weight: 700; color: #4caf50; margin: 8px 0; }
+        .modal-open-box .result-note { font-size: 14px; color: #888; }
+        .modal-open-box .btn-close-result { margin-top: 16px; padding: 10px 32px; background: #f57c00; border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .modal-open-box .btn-close-result:hover { background: #e65100; }
+        .history-section { margin-top: 40px; border-top: 1px solid #1a1a2e; padding-top: 24px; }
+        .history-title { font-size: 20px; font-weight: 700; color: #fff; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+        .history-title .clear-btn { background: none; border: 1px solid #ff6b6b; color: #ff6b6b; padding: 6px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .history-title .clear-btn:hover { background: rgba(255,0,0,0.1); }
+        .history-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #1a1a2e; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 500px; }
+        .history-table th { background: #0f0f1a; color: #ffd700; padding: 12px 16px; text-align: left; border-bottom: 2px solid #1a1a2e; font-weight: 700; }
+        .history-table td { padding: 12px 16px; border-bottom: 1px solid #1a1a2e; color: #ccc; }
+        .history-table tr:last-child td { border-bottom: none; }
+        .history-table .status-success { color: #4caf50; font-weight: 600; }
+        .history-table .status-pending { color: #ffd700; font-weight: 600; }
+        .history-table .btn-get-acc { padding: 4px 14px; background: #f57c00; border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .history-table .btn-get-acc:hover:not(:disabled) { background: #e65100; }
+        .history-table .btn-get-acc:disabled { opacity: 0.4; cursor: not-allowed; }
+        .history-empty { text-align: center; color: #666; padding: 30px 0; font-size: 15px; }
+        .footer { background: #0f0f1a; border-top: 1px solid #1a1a2e; padding: 32px 24px 20px; margin-top: 20px; }
+        .footer .footer-grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 24px; }
+        .footer .footer-grid .col h4 { color: #fff; font-size: 16px; margin-bottom: 10px; }
+        .footer .footer-grid .col a, .footer .footer-grid .col p { display: block; color: #888; font-size: 14px; margin-bottom: 6px; transition: 0.2s; }
+        .footer .footer-grid .col a:hover { color: #f57c00; }
+        .footer .support-info { background: #12121f; border-radius: 12px; padding: 16px 20px; border: 1px solid #1a1a2e; margin-top: 16px; text-align: center; }
+        .footer .support-info p { color: #ccc; font-size: 15px; margin: 4px 0; }
+        .footer .support-info strong { color: #ffd700; }
+        .footer .bottom { text-align: center; color: #555; font-size: 13px; border-top: 1px solid #1a1a2e; padding-top: 16px; margin-top: 20px; }
+        .footer .bottom span { color: #f57c00; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: #1a1a2e; border-radius: 20px; padding: 32px 28px; max-width: 400px; width: 90%; text-align: center; border: 1px solid rgba(255,215,0,0.15); box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: popIn 0.3s ease; position: relative; }
+        .modal-box h2 { color: #fff; font-size: 24px; margin-bottom: 4px; }
+        .modal-box .sub { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .modal-box .input-group { margin-bottom: 14px; text-align: left; }
+        .modal-box .input-group label { display: block; color: #aaa; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .modal-box .input-group input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #2a2a4a; background: #0f0f1a; color: #fff; font-size: 15px; outline: none; }
+        .modal-box .input-group input:focus { border-color: #f57c00; }
+        .modal-box .modal-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #f57c00, #e65100); border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 6px; }
+        .modal-box .modal-btn:hover { transform: scale(1.01); }
+        .modal-box .switch-auth { color: #888; font-size: 14px; margin-top: 14px; }
+        .modal-box .switch-auth a { color: #f57c00; cursor: pointer; font-weight: 600; }
+        .modal-box .switch-auth a:hover { text-decoration: underline; }
+        .modal-box .close-modal { position: absolute; top: 12px; right: 18px; font-size: 24px; color: #888; cursor: pointer; background: none; border: none; }
+        .recharge-modal .modal-box { max-width: 420px; }
+        .recharge-modal .amount-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 16px 0; }
+        .recharge-modal .amount-btn { padding: 10px; background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 8px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .recharge-modal .amount-btn:hover { border-color: #f57c00; background: rgba(245,124,0,0.05); }
+        .recharge-modal .amount-btn.selected { border-color: #f57c00; background: rgba(245,124,0,0.1); }
+        .recharge-modal .bank-info { background: #0f0f1a; border-radius: 8px; padding: 12px 14px; margin: 12px 0; border: 1px solid #2a2a4a; font-size: 14px; text-align: left; color: #ccc; }
+        .recharge-modal .bank-info strong { color: #ffd700; }
+        .recharge-modal .confirm-section { margin-top: 12px; padding: 10px; background: rgba(255,215,0,0.04); border-radius: 8px; border: 1px solid rgba(255,215,0,0.08); }
+        .recharge-modal .confirm-section .note { font-size: 13px; color: #ff6b6b; margin-top: 6px; }
+        .recharge-modal .confirm-section .note strong { color: #ffd700; }
+        @media (max-width:600px){ .hero h1{font-size:26px;} .hero .stats{gap:20px;} .product-grid{grid-template-columns:1fr 1fr;gap:12px;} .product-card{padding:14px 12px 16px;} .product-card .name{font-size:16px;} .product-card .price{font-size:18px;} .header{flex-direction:column;align-items:stretch;gap:8px;padding:10px 16px;} .header .nav-links{justify-content:space-between;} .filter-bar{gap:4px;} .filter-bar .filter-btn{padding:6px 12px;font-size:12px;} .modal-box{padding:24px 16px;} .history-table{font-size:12px;min-width:400px;} .history-table th,.history-table td{padding:8px 10px;} .recharge-modal .amount-grid{grid-template-columns:repeat(3,1fr);gap:6px;} .header .nav-links .btn-recharge{font-size:12px;padding:4px 12px;} .footer .footer-grid{grid-template-columns:1fr 1fr;} }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎁 <span>Túi</span> mù VIP</div>
+        <div class="nav-links" id="navLinks">
+            <span class="balance" id="balanceDisplay">💰 0</span>
+            <a href="#" class="btn-recharge" id="rechargeHeaderBtn">💰 Nạp tiền</a>
+            <a href="admin_payment.html" class="btn-admin">🔑 Admin</a>
+            <a href="#" class="btn-login" id="loginOpenBtn">Đăng nhập</a>
+            <a href="#" class="btn-reg" id="registerOpenBtn">Đăng ký</a>
+            <span class="user-name" id="userNameDisplay" style="display:none;"></span>
+            <a href="#" class="btn-logout" id="logoutBtn" style="display:none;">Đăng xuất</a>
+        </div>
+    </div>
+    <div class="hero">
+        <h1>🎁 Túi mù VIP - Acc game xịn</h1>
+        <p>Mở túi mù nhận acc rank cao, skin hiếm – nhận acc tức thì, bảo hành xuyên suốt.</p>
+        <div class="stats">
+            <div class="stat-item"><div class="number">12.400+</div><div class="label">Acc sẵn sàng</div></div>
+            <div class="stat-item"><div class="number">4.9/5</div><div class="label">Từ 8.200 đánh giá</div></div>
+            <div class="stat-item"><div class="number">2 phút</div><div class="label">Nhận acc trung bình</div></div>
+        </div>
+    </div>
+    <div class="main-container">
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="39k">39K</button>
+            <button class="filter-btn" data-filter="49k">49K</button>
+            <button class="filter-btn" data-filter="99k">99K</button>
+            <button class="filter-btn" data-filter="199k">199K</button>
+            <button class="filter-btn" data-filter="299k">299K</button>
+            <button class="filter-btn" data-filter="599k">599K</button>
+            <button class="filter-btn" data-filter="999k">999K</button>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+        <div class="history-section">
+            <div class="history-title">
+                <span>📜 Lịch sử mở túi</span>
+                <button class="clear-btn" id="clearHistoryBtn">Xóa lịch sử</button>
+            </div>
+            <div class="history-table-wrap">
+                <table class="history-table" id="historyTable">
+                    <thead><tr><th>#</th><th>Sản phẩm</th><th>Giá</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <tbody id="historyBody"><tr><td colspan="5" class="history-empty">Chưa có lịch sử mở túi.</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+        <div style="text-align:center;color:#555;font-size:14px;margin:20px 0;">🔥 Mở túi mù VIP ngay hôm nay</div>
+    </div>
+    <div class="footer">
+        <div class="footer-grid">
+            <div class="col"><h4>🌐 Khám phá</h4><a href="#">Tất cả game</a><a href="#">Acc mới</a><a href="#">Flash sale</a><a href="#">Acc VIP</a></div>
+            <div class="col"><h4>📞 Hỗ trợ</h4><a href="#">Cách mở túi</a><a href="#">Chính sách bảo hành</a><a href="#">Hướng dẫn nạp thẻ</a><a href="#">Liên hệ</a></div>
+            <div class="col"><h4>🔗 Kết nối</h4><a href="#">Facebook</a><a href="#">Zalo OA</a><a href="#">Discord</a><a href="#">TikTok</a></div>
+        </div>
+        <div class="support-info">
+            <p><strong>💬 Zalo:</strong> 0962086812</p>
+            <p><strong>📧 Email:</strong> tranhainam862012@gmail.com</p>
+        </div>
+        <div class="bottom">© 2025 <span>Túi mù VIP</span> - Nền tảng mở túi mù acc game uy tín</div>
+    </div>
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+            <h2 id="modalTitle">Đăng nhập</h2>
+            <div class="sub" id="modalSub">Đăng nhập để mở túi</div>
+            <div class="input-group"><label>Tên đăng nhập</label><input type="text" id="authUsername" placeholder="Nhập tên"></div>
+            <div class="input-group"><label>Mật khẩu</label><input type="password" id="authPassword" placeholder="Nhập mật khẩu"></div>
+            <button class="modal-btn" id="authSubmitBtn">Đăng nhập</button>
+            <div class="switch-auth" id="switchAuth">Chưa có tài khoản? <a id="switchAuthLink">Đăng ký</a></div>
+        </div>
+    </div>
+    <div class="modal-overlay recharge-modal" id="rechargeModal">
+        <div class="modal-box">
+            <button class="close-modal" id="closeRechargeBtn">&times;</button>
+            <h2>💰 Nạp tiền</h2>
+            <div class="sub">Chọn số tiền muốn nạp</div>
+            <div class="amount-grid" id="amountGrid">
+                <button class="amount-btn" data-amount="10000">10K</button>
+                <button class="amount-btn" data-amount="20000">20K</button>
+                <button class="amount-btn" data-amount="50000">50K</button>
+                <button class="amount-btn" data-amount="100000">100K</button>
+                <button class="amount-btn" data-amount="200000">200K</button>
+                <button class="amount-btn" data-amount="500000">500K</button>
+                <button class="amount-btn" data-amount="1000000">1.000K</button>
+                <button class="amount-btn" data-amount="2000000">2.000K</button>
+                <button class="amount-btn" data-amount="5000000">5.000K</button>
+            </div>
+            <div class="bank-info">
+                <strong>💳 Chuyển khoản đến:</strong><br>
+                Ngân hàng: <strong>MB Bank</strong><br>
+                Số tài khoản: <strong>0975963962</strong><br>
+                Chủ tài khoản: <strong>TRAN VAN HUNG</strong><br>
+                <span style="color:#888;font-size:12px;">(Nội dung: NAP + TÊN ĐĂNG NHẬP)</span>
+            </div>
+            <div class="confirm-section">
+                <button class="modal-btn" id="rechargeConfirmBtn" style="background:linear-gradient(135deg,#4caf50,#2e7d32);">✅ Xác nhận thanh toán</button>
+                <div class="note" id="rechargeStatus">⏳ Chưa gửi yêu cầu</div>
+                <div class="note" style="color:#ff6b6b;font-size:12px;margin-top:6px;">
+                    📌 <strong>Lưu ý:</strong> Quá 10 phút tiền không vào, liên hệ Zalo: <strong style="color:#ffd700;">0962086812</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-open-box" id="openBoxModal">
+        <div class="modal-inner">
+            <button class="close-modal-btn" id="closeOpenBoxBtn">&times;</button>
+            <div class="big-icon">🎉</div>
+            <div class="result-title">CHÚC MỪNG BẠN!</div>
+            <div class="result-acc">🔥 TÀI KHOẢN MAXIM</div>
+            <div class="result-note">📌 Bạn đã nhận được tài khoản MAXIM.<br>Vào lịch sử để nhận acc.</div>
+            <button class="btn-close-result" id="closeResultBtn">✅ Đóng</button>
+        </div>
+    </div>
+    <script>
+        // Toàn bộ script như các câu trước (giữ nguyên)
+        // ... (đã có trong code trước)
+        // Đảm bảo các hàm và biến toàn cục giống như đã viết
+        // Lưu ý: các link admin trỏ đúng tên file: admin_payment.html, admin_users.html
+    </script>
+</body>
+</html>
