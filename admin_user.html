@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Quản lý tài khoản</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+        body { background: #0a0a12; color: #e0e0e0; min-height: 100vh; padding: 16px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #ffd700; font-size: 28px; text-align: center; margin-bottom: 4px; }
+        .sub { color: #888; text-align: center; margin-bottom: 24px; font-size: 14px; }
+        .nav-links { text-align: center; margin-bottom: 20px; }
+        .nav-links a { color: #f57c00; padding: 8px 16px; border: 1px solid #f57c00; border-radius: 8px; margin: 0 6px; display: inline-block; transition: 0.2s; text-decoration: none; }
+        .nav-links a:hover { background: rgba(245,124,0,0.1); }
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; justify-content: center; }
+        .stats .stat-card { background: #12121f; border-radius: 12px; padding: 16px 24px; border: 1px solid #1a1a2e; text-align: center; min-width: 120px; }
+        .stats .stat-card .number { font-size: 28px; font-weight: 800; color: #ffd700; }
+        .stats .stat-card .label { font-size: 13px; color: #888; }
+        .add-section { background: #12121f; border-radius: 12px; padding: 16px 20px; border: 1px solid #1a1a2e; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .add-section input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #2a2a4a; background: #0f0f1a; color: #fff; font-size: 14px; outline: none; min-width: 120px; }
+        .add-section input:focus { border-color: #f57c00; }
+        .add-section .btn-add { padding: 10px 20px; background: #f57c00; border: none; border-radius: 8px; color: #fff; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .add-section .btn-add:hover { background: #e65100; }
+        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #1a1a2e; background: #0f0f1a; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 500px; }
+        th { background: #1a1a2e; color: #ffd700; padding: 12px 16px; text-align: left; border-bottom: 2px solid #2a2a4a; font-weight: 700; }
+        td { padding: 12px 16px; border-bottom: 1px solid #1a1a2e; color: #ccc; }
+        tr:last-child td { border-bottom: none; }
+        .btn-delete { padding: 4px 12px; background: transparent; border: 1px solid #ff6b6b; border-radius: 6px; color: #ff6b6b; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .btn-delete:hover { background: rgba(255,0,0,0.1); }
+        .btn-reset { padding: 4px 12px; background: transparent; border: 1px solid #ffd700; border-radius: 6px; color: #ffd700; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; margin-left: 6px; }
+        .btn-reset:hover { background: rgba(255,215,0,0.05); }
+        .empty-row td { text-align: center; color: #666; padding: 30px 0; }
+        .toast { position: fixed; top: 20px; right: 20px; background: #1a1a2e; border: 1px solid #4caf50; border-radius: 12px; padding: 16px 24px; color: #fff; box-shadow: 0 8px 30px rgba(0,0,0,0.5); display: none; z-index: 999; max-width: 360px; }
+        .toast.success { border-color: #4caf50; }
+        .toast.error { border-color: #ff6b6b; }
+        .toast.show { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width:600px){ table { font-size:12px; min-width:350px; } th,td { padding:8px 10px; } .stats .stat-card { padding:12px 16px; min-width:80px; } .stats .stat-card .number { font-size:20px; } .add-section { flex-direction:column; align-items:stretch; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👥 Quản lý tài khoản</h1>
+        <div class="sub">Thêm, xóa hoặc đặt lại mật khẩu</div>
+        <div class="nav-links">
+            <a href="index.html">🏠 Trang chủ</a>
+            <a href="admin_payment.html">💰 Xử lý thanh toán</a>
+        </div>
+        <div class="stats">
+            <div class="stat-card"><div class="number" id="totalUsers">0</div><div class="label">👤 Tổng tài khoản</div></div>
+        </div>
+        <div class="add-section">
+            <input type="text" id="newUsername" placeholder="Tên đăng nhập">
+            <input type="text" id="newPassword" placeholder="Mật khẩu">
+            <button class="btn-add" id="addUserBtn">➕ Thêm tài khoản</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>#</th><th>Tên đăng nhập</th><th>Mật khẩu</th><th>Thao tác</th></tr></thead>
+                <tbody id="userTableBody"><tr><td colspan="4" class="empty-row">Chưa có tài khoản nào.</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script>
+        (function() {
+            var USERS_KEY = 'shopgaobac_users';
+            var BALANCE_KEY = 'shopgaobac_balance_data';
+            var HISTORY_KEY = 'shopgaobac_history';
+            var PAYMENTS_KEY = 'shopgaobac_payments';
+
+            function loadUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || {}; } catch(e){ return {}; } }
+            function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+
+            function showToast(msg, type) {
+                var t = document.getElementById('toast');
+                t.textContent = msg;
+                t.className = 'toast ' + type + ' show';
+                clearTimeout(t._timer);
+                t._timer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
+            }
+
+            function renderUsers() {
+                var users = loadUsers();
+                var tbody = document.getElementById('userTableBody');
+                var list = Object.keys(users);
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Chưa có tài khoản nào.</td></tr>';
+                    document.getElementById('totalUsers').textContent = '0';
+                    return;
+                }
+                var html = '';
+                for (var i = 0; i < list.length; i++) {
+                    var username = list[i];
+                    html += '<tr><td>' + (i+1) + '</td><td><strong>' + username + '</strong></td><td>' + users[username] + '</td><td><button class="btn-reset" data-username="' + username + '">🔑 Đặt lại mật khẩu</button><button class="btn-delete" data-username="' + username + '">🗑️ Xóa</button></td></tr>';
+                }
+                tbody.innerHTML = html;
+                document.getElementById('totalUsers').textContent = list.length;
+
+                document.querySelectorAll('.btn-delete').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var username = this.getAttribute('data-username');
+                        if (confirm('Xóa tài khoản "' + username + '" và toàn bộ dữ liệu?')) deleteUser(username);
+                    });
+                });
+                document.querySelectorAll('.btn-reset').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var username = this.getAttribute('data-username');
+                        if (confirm('Đặt lại mật khẩu cho "' + username + '" về 123456?')) resetPassword(username);
+                    });
+                });
+            }
+
+            function deleteUser(username) {
+                var users = loadUsers();
+                if (!users[username]) { showToast('❌ Không tìm thấy.', 'error'); return; }
+                delete users[username];
+                saveUsers(users);
+                try { var b = JSON.parse(localStorage.getItem(BALANCE_KEY)) || {}; delete b[username]; localStorage.setItem(BALANCE_KEY, JSON.stringify(b)); } catch(e) {}
+                try { var h = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; var nh = h.filter(function(item){ return item.username !== username; }); localStorage.setItem(HISTORY_KEY, JSON.stringify(nh)); } catch(e) {}
+                try { var p = JSON.parse(localStorage.getItem(PAYMENTS_KEY)) || []; var np = p.filter(function(item){ return item.username !== username; }); localStorage.setItem(PAYMENTS_KEY, JSON.stringify(np)); } catch(e) {}
+                showToast('🗑️ Đã xóa "' + username + '"', 'error');
+                renderUsers();
+            }
+
+            function resetPassword(username) {
+                var users = loadUsers();
+                if (!users[username]) { showToast('❌ Không tìm thấy.', 'error'); return; }
+                users[username] = '123456';
+                saveUsers(users);
+                showToast('✅ Đã đặt lại mật khẩu cho "' + username + '"', 'success');
+                renderUsers();
+            }
+
+            function addUser() {
+                var username = document.getElementById('newUsername').value.trim();
+                var password = document.getElementById('newPassword').value.trim();
+                if (!username) { showToast('❌ Nhập tên đăng nhập.', 'error'); return; }
+                if (!password) { showToast('❌ Nhập mật khẩu.', 'error'); return; }
+                if (username.length < 3) { showToast('❌ Tên ít nhất 3 ký tự.', 'error'); return; }
+                if (password.length < 4) { showToast('❌ Mật khẩu ít nhất 4 ký tự.', 'error'); return; }
+                var users = loadUsers();
+                if (users[username]) { showToast('❌ Tên đã tồn tại.', 'error'); return; }
+                users[username] = password;
+                saveUsers(users);
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+                showToast('✅ Đã thêm "' + username + '"', 'success');
+                renderUsers();
+            }
+
+            document.getElementById('addUserBtn').addEventListener('click', addUser);
+            document.getElementById('newPassword').addEventListener('keypress', function(e) { if (e.key === 'Enter') addUser(); });
+            document.getElementById('newUsername').addEventListener('keypress', function(e) { if (e.key === 'Enter') addUser(); });
+
+            // Demo users
+            var users = loadUsers();
+            if (Object.keys(users).length === 0) {
+                users['admin'] = 'admin123';
+                users['user1'] = '123456';
+                users['user2'] = 'password';
+                saveUsers(users);
+            }
+            renderUsers();
+        })();
+    </script>
+</body>
+</html>
