@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Xử lý thanh toán</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+        body { background: #0a0a12; color: #e0e0e0; min-height: 100vh; padding: 16px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ffd700; font-size: 28px; text-align: center; margin-bottom: 4px; }
+        .sub { color: #888; text-align: center; margin-bottom: 24px; font-size: 14px; }
+        .nav-links { text-align: center; margin-bottom: 20px; }
+        .nav-links a { color: #f57c00; padding: 8px 16px; border: 1px solid #f57c00; border-radius: 8px; margin: 0 6px; display: inline-block; transition: 0.2s; text-decoration: none; }
+        .nav-links a:hover { background: rgba(245,124,0,0.1); }
+        .stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; justify-content: center; }
+        .stats .stat-card { background: #12121f; border-radius: 12px; padding: 16px 24px; border: 1px solid #1a1a2e; text-align: center; min-width: 120px; }
+        .stats .stat-card .number { font-size: 28px; font-weight: 800; color: #ffd700; }
+        .stats .stat-card .label { font-size: 13px; color: #888; }
+        .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #1a1a2e; background: #0f0f1a; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 600px; }
+        th { background: #1a1a2e; color: #ffd700; padding: 12px 16px; text-align: left; border-bottom: 2px solid #2a2a4a; font-weight: 700; }
+        td { padding: 12px 16px; border-bottom: 1px solid #1a1a2e; color: #ccc; }
+        tr:last-child td { border-bottom: none; }
+        .status-pending { color: #ffd700; font-weight: 600; }
+        .status-confirmed { color: #4caf50; font-weight: 600; }
+        .btn-confirm { padding: 4px 16px; background: #f57c00; border: none; border-radius: 6px; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .btn-confirm:hover:not(:disabled) { background: #e65100; }
+        .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-delete { padding: 4px 12px; background: transparent; border: 1px solid #ff6b6b; border-radius: 6px; color: #ff6b6b; font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; margin-left: 6px; }
+        .btn-delete:hover { background: rgba(255,0,0,0.1); }
+        .empty-row td { text-align: center; color: #666; padding: 30px 0; }
+        .refresh-btn { padding: 8px 20px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; color: #aaa; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 16px; }
+        .refresh-btn:hover { background: #2a2a4a; }
+        .toast { position: fixed; top: 20px; right: 20px; background: #1a1a2e; border: 1px solid #4caf50; border-radius: 12px; padding: 16px 24px; color: #fff; box-shadow: 0 8px 30px rgba(0,0,0,0.5); display: none; z-index: 999; max-width: 360px; }
+        .toast.success { border-color: #4caf50; }
+        .toast.error { border-color: #ff6b6b; }
+        .toast.show { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width:600px){ table { font-size:12px; min-width:400px; } th,td { padding:8px 10px; } .stats .stat-card { padding:12px 16px; min-width:80px; } .stats .stat-card .number { font-size:20px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Xử lý thanh toán</h1>
+        <div class="sub">Admin xác nhận nạp tiền cho người dùng</div>
+        <div class="nav-links">
+            <a href="index.html">🏠 Trang chủ</a>
+            <a href="admin_users.html">👥 Quản lý tài khoản</a>
+        </div>
+        <div class="stats">
+            <div class="stat-card"><div class="number" id="totalPending">0</div><div class="label">⏳ Đang chờ</div></div>
+            <div class="stat-card"><div class="number" id="totalConfirmed">0</div><div class="label">✅ Đã xác nhận</div></div>
+        </div>
+        <button class="refresh-btn" id="refreshBtn">🔄 Làm mới</button>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>#</th><th>Người dùng</th><th>Số tiền</th><th>Thời gian</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody id="historyBody"><tr><td colspan="6" class="empty-row">Chưa có giao dịch nào.</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script>
+        (function() {
+            var PAYMENTS_KEY = 'shopgaobac_payments';
+            var BALANCE_KEY = 'shopgaobac_balance_data';
+
+            function loadPayments() { try { return JSON.parse(localStorage.getItem(PAYMENTS_KEY)) || []; } catch(e){ return []; } }
+            function savePayments(p) { localStorage.setItem(PAYMENTS_KEY, JSON.stringify(p)); }
+            function loadBalance(username) { try { var data = JSON.parse(localStorage.getItem(BALANCE_KEY)) || {}; return data[username] || 0; } catch(e){ return 0; } }
+            function saveBalance(username, amount) { try { var data = JSON.parse(localStorage.getItem(BALANCE_KEY)) || {}; data[username] = amount; localStorage.setItem(BALANCE_KEY, JSON.stringify(data)); } catch(e){} }
+
+            function showToast(msg, type) {
+                var t = document.getElementById('toast');
+                t.textContent = msg;
+                t.className = 'toast ' + type + ' show';
+                clearTimeout(t._timer);
+                t._timer = setTimeout(function(){ t.classList.remove('show'); }, 4000);
+            }
+
+            function renderTable() {
+                var payments = loadPayments();
+                var tbody = document.getElementById('historyBody');
+                var pending = 0, confirmed = 0;
+                if (payments.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Chưa có giao dịch nào.</td></tr>';
+                    document.getElementById('totalPending').textContent = '0';
+                    document.getElementById('totalConfirmed').textContent = '0';
+                    return;
+                }
+                var html = '';
+                payments = payments.slice().reverse();
+                for (var i = 0; i < payments.length; i++) {
+                    var item = payments[i];
+                    if (item.status === 'pending') pending++;
+                    else if (item.status === 'confirmed') confirmed++;
+                    var statusHtml = item.status === 'pending' ? '<span class="status-pending">⏳ Đang chờ</span>' : '<span class="status-confirmed">✅ Đã xác nhận</span>';
+                    var actionHtml = '';
+                    if (item.status === 'pending') {
+                        actionHtml = '<button class="btn-confirm" data-id="' + item.id + '">✅ Xác nhận</button><button class="btn-delete" data-id="' + item.id + '">🗑️ Xóa</button>';
+                    } else {
+                        actionHtml = '<span style="color:#888;">Đã xử lý</span>';
+                    }
+                    html += '<tr><td>' + item.id + '</td><td>' + item.username + '</td><td>' + item.amount.toLocaleString('vi-VN') + 'đ</td><td>' + item.time + '</td><td>' + statusHtml + '</td><td>' + actionHtml + '</td></tr>';
+                }
+                tbody.innerHTML = html;
+                document.getElementById('totalPending').textContent = pending;
+                document.getElementById('totalConfirmed').textContent = confirmed;
+
+                document.querySelectorAll('.btn-confirm').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var id = parseInt(this.getAttribute('data-id'));
+                        confirmPayment(id);
+                    });
+                });
+                document.querySelectorAll('.btn-delete').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var id = parseInt(this.getAttribute('data-id'));
+                        if (confirm('Xóa giao dịch #' + id + '?')) deletePayment(id);
+                    });
+                });
+            }
+
+            function confirmPayment(id) {
+                var payments = loadPayments();
+                var idx = payments.findIndex(function(p){ return p.id === id; });
+                if (idx === -1) { showToast('❌ Không tìm thấy giao dịch.', 'error'); return; }
+                var item = payments[idx];
+                if (item.status === 'confirmed') { showToast('⏳ Đã xác nhận trước đó.', 'error'); return; }
+                var currentBalance = loadBalance(item.username);
+                var newBalance = currentBalance + item.amount;
+                saveBalance(item.username, newBalance);
+                payments[idx].status = 'confirmed';
+                savePayments(payments);
+                showToast('✅ Đã xác nhận nạp ' + item.amount.toLocaleString('vi-VN') + 'đ cho ' + item.username, 'success');
+                renderTable();
+            }
+
+            function deletePayment(id) {
+                var payments = loadPayments().filter(function(p){ return p.id !== id; });
+                savePayments(payments);
+                showToast('🗑️ Đã xóa giao dịch #' + id, 'error');
+                renderTable();
+            }
+
+            document.getElementById('refreshBtn').addEventListener('click', function(){ renderTable(); showToast('🔄 Đã làm mới.', 'success'); });
+
+            // Demo data
+            var demo = loadPayments();
+            if (demo.length === 0) {
+                var now = new Date();
+                var d = [
+                    { id: 1, username: 'user1', amount: 100000, time: new Date(now.getTime()-300000).toLocaleString('vi-VN'), status: 'pending' },
+                    { id: 2, username: 'user2', amount: 200000, time: new Date(now.getTime()-600000).toLocaleString('vi-VN'), status: 'pending' },
+                    { id: 3, username: 'admin', amount: 50000, time: new Date(now.getTime()-900000).toLocaleString('vi-VN'), status: 'confirmed' }
+                ];
+                savePayments(d);
+            }
+            renderTable();
+            window.confirmPayment = confirmPayment;
+        })();
+    </script>
+</body>
+</html>
